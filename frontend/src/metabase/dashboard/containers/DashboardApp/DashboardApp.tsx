@@ -1,5 +1,5 @@
 import cx from "classnames";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Route, WithRouterProps } from "react-router";
 import _ from "underscore";
 
@@ -37,7 +37,7 @@ function getDashboardId({ dashboardId, params }: DashboardAppProps) {
   return Urls.extractEntityId(params.slug) as DashboardId;
 }
 
-const DashboardApp = (props: DashboardAppProps) => {
+export const DashboardApp = (props: DashboardAppProps) => {
   useDashboardUrlQuery(props.router, props.location);
 
   const { route, location } = props;
@@ -86,32 +86,25 @@ const DashboardApp = (props: DashboardAppProps) => {
         onFullscreenChange={onFullscreenChange}
         reportAutoScrolledToDashcard={reportAutoScrolledToDashcard}
       >
-        <DashboardTitle>
-          <Dashboard />
-        </DashboardTitle>
+        <DashboardTitle />
+        <Dashboard />
       </DashboardContextProvider>
       {props.children}
     </div>
   );
 };
 
-export const DashboardAppConnected = DashboardApp;
-
-const EnhancedDashboardTitle = _.compose(
-  title(props => ({
-    title: props.documentTitle || props.dashboard?.name,
-    titleIndex: 1,
-  })),
-  titleWithLoadingTime("loadingStartTime"),
-)(({ children }: PropsWithChildren) => children);
-
-const DashboardTitle = ({ children }: PropsWithChildren) => {
+const DashboardTitle = () => {
   const { dashboard, documentTitle, pageFavicon } = useDashboardContext();
   useFavicon({ favicon: pageFavicon });
 
-  return (
-    <EnhancedDashboardTitle documentTitle={documentTitle} dashboard={dashboard}>
-      {children}
-    </EnhancedDashboardTitle>
-  );
+  const Component = _.compose(
+    title(() => ({
+      title: documentTitle || dashboard?.name,
+      titleIndex: 1,
+    })),
+    titleWithLoadingTime("loadingStartTime"),
+  )(() => null);
+
+  return <Component />;
 };
