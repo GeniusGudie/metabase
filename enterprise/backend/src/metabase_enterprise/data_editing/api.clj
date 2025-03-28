@@ -201,6 +201,52 @@
                         (into {}))]
     (driver/create-table! driver db-id table-name column-map :primary-key (map keyword primary_key))))
 
+;; webhooks
+
+(api.macros/defendpoint :post "/webhook"
+  "Does something"
+  [_
+   _
+   {:keys [table-id]}] :- [:map [:table-id ms/PositiveInt]]
+  (api/check-superuser)
+  (let [_ (api/check-404 (t2/select-one :model/Table table-id))
+        token (str (random-uuid))]
+    (t2/insert! :table_webhook_token {:token token, :table_id table-id})
+    {:table_id table-id
+     :token token}))
+
+(api.macros/defendpoint :delete "/webhook/:token"
+  "Does something"
+  [{:keys [token]}
+   _
+   _]
+  (api/check-superuser)
+  (let [deleted-count (t2/delete! :table_webhook_token :token token)]
+    (api/check-404 (pos? deleted-count)))
+  {})
+
+(api.macros/defendpoint :get "/table/:table-id/webhook"
+  "Does something"
+  [{:keys [table-id]} :- [:map [:table-id ms/PositiveInt]]]
+  (api/check-superuser)
+  (api/check-404 (t2/select-one :model/Table table-id))
+  {:tokens (t2/select [:table_webhook_token :token :table_id] :table_id table-id)})
+
+(api.macros/defendpoint :post "/webhook/:token/data"
+  "Does something"
+  [{:keys [token]}
+   _
+   row-or-rows]
+  (let [table-id (api/check-404 (t2/select-one-fn :table_id :table_webhook_token :token token))
+        rows     (if (map? row-or-rows) [row-or-rows] row-or-rows)
+        rows'    (apply-coercions table-id rows)]
+    (when (seq rows')
+      (api/check-400 (every? seq rows'))
+      (perform-bulk-action! :bulk/create table-id rows'))
+    ;; events?
+    ;; todo define return
+    {}))
+
 (def ^{:arglists '([request respond raise])} routes
   "`/api/ee/data-editing routes."
   (api.macros/ns-handler *ns* +auth))

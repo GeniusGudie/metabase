@@ -11025,6 +11025,49 @@ databaseChangeLog:
               - column:
                   name: query_execution_id
             indexName: idx_field_usage_query_execution_id
+  - changeSet:
+      id: v54.2025-03-31T11:01:55
+      author: wotbrew
+      comment: Add table webhook token
+      preConditions:
+      rollback:
+        dropTable:
+            tableName: table_webhook_token
+      changes:
+        - createTable:
+            tableName: table_webhook_token
+            remarks: Table containing webhook tokens, that permit writing or modifying tables without a metabase admin session
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  remarks: The table the token permits edits for
+                  name: table_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    references: metabase_table(id)
+                    foreignKeyName: fk_table_webhook_token_table_id
+                    deleteCascade: true
+              - column:
+                  remarks: The token value
+                  name: token
+                  type: varchar(254)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  remarks: The timestamp of when the token was created
+                  name: created_at
+                  type: ${timestamp_type}
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
 
   - changeSet:
       id: v55.2025-03-24T16:28:41
