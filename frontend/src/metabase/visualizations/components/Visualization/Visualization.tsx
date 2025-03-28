@@ -72,7 +72,6 @@ import type { Dispatch, State } from "metabase-types/store";
 import { EmptyVizState } from "../EmptyVizState/EmptyVizState";
 
 import ChartSettingsErrorButton from "./ChartSettingsErrorButton";
-import { ErrorView } from "./ErrorView";
 import LoadingView from "./LoadingView";
 import NoResultsView from "./NoResultsView";
 import {
@@ -128,10 +127,12 @@ type VisualizationOwnProps = {
   isAction?: boolean;
   isDashboard?: boolean;
   isMobile?: boolean;
+  isShowingSummarySidebar: boolean;
   isSlow?: CardSlownessStatus;
   isVisible?: boolean;
   metadata?: Metadata;
   mode?: ClickActionModeGetter | Mode | QueryClickActionsMode;
+  onEditSummary: () => void;
   query?: NativeQuery;
   rawSeries?: RawSeries;
   replacementContent?: JSX.Element | null;
@@ -525,7 +526,6 @@ class Visualization extends PureComponent<
       dashcard,
       dispatch,
       errorIcon,
-      errorMessageOverride,
       expectedDuration,
       fontFamily,
       getExtraDataForClick,
@@ -545,9 +545,11 @@ class Visualization extends PureComponent<
       isQueryBuilder,
       isSettings,
       isShowingDetailsOnlyColumns,
+      isShowingSummarySidebar,
       isSlow,
       metadata,
       mode,
+      onEditSummary,
       query,
       queryBuilderMode,
       rawSeries = [],
@@ -612,13 +614,9 @@ class Visualization extends PureComponent<
             t`Could not display this chart with this data.`;
           if (
             e instanceof ChartSettingsError &&
-            visualization.placeholderSeries &&
-            !isDashboard
+            !isDashboard &&
+            onOpenChartSettings
           ) {
-            // hide the error and show empty state instead of using placeholder series
-            error = null;
-            isPlaceholder = true;
-          } else if (e instanceof ChartSettingsError && onOpenChartSettings) {
             error = (
               <ChartSettingsErrorButton
                 message={error}
@@ -628,6 +626,7 @@ class Visualization extends PureComponent<
                 }
               />
             );
+            isPlaceholder = true;
           } else if (e instanceof MinRowsError) {
             noResults = true;
           }
@@ -716,12 +715,18 @@ class Visualization extends PureComponent<
             replacementContent
           ) : isDashboard && noResults ? (
             <NoResultsView isSmall={small} />
-          ) : error ? (
-            <ErrorView
-              error={errorMessageOverride ?? error}
-              icon={errorIcon}
-              isSmall={small}
-              isDashboard={!!isDashboard}
+          ) : error && isPlaceholder && visualization ? (
+            // <ErrorView
+            //   error={errorMessageOverride ?? error}
+            //   icon={errorIcon}
+            //   isSmall={small}
+            //   isDashboard={!!isDashboard}
+            // />
+            <EmptyVizState
+              visualization={visualization}
+              error={error}
+              isSummarizeSidebarOpen={isShowingSummarySidebar}
+              onEditSummary={onEditSummary}
             />
           ) : genericError ? (
             <SmallGenericError bordered={false} />
@@ -731,7 +736,7 @@ class Visualization extends PureComponent<
               isSlow={!!isSlow}
             />
           ) : isPlaceholder && visualization ? (
-            <EmptyVizState visualization={visualization} />
+            <div />
           ) : (
             series && (
               <div
