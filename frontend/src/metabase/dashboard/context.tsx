@@ -69,7 +69,6 @@ import { parseHashOptions } from "metabase/lib/browser";
 import { connect, useDispatch } from "metabase/lib/redux";
 import { closeNavbar, setErrorPage } from "metabase/redux/app";
 import { addUndo, dismissAllUndo, dismissUndo } from "metabase/redux/undo";
-import { getIsNavbarOpen } from "metabase/selectors/app";
 import {
   canManageSubscriptions,
   getUserIsAdmin,
@@ -127,7 +126,7 @@ const mapStateToProps = (state: State) => {
   return {
     canManageSubscriptions: canManageSubscriptions(state),
     isAdmin: getUserIsAdmin(state),
-    isNavbarOpen: getIsNavbarOpen(state),
+    isNavbarOpen: false, // getIsNavbarOpen(state),
     isEditing: getIsEditing(state),
     isSharing: getIsSharing(state),
     dashboardBeforeEditing: getDashboardBeforeEditing(state),
