@@ -29,7 +29,7 @@ const CreateDashboardModalInner = ({
     <CreateDashboardModalCore
       opened={!isLoading && isOpen}
       onCreate={onCreate}
-      onClose={onClose}
+      onClose={() => onClose?.()}
       collectionId={id}
     />
   );
