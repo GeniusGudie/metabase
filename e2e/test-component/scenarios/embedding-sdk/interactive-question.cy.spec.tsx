@@ -73,7 +73,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
     // eslint-disable-next-line no-unsafe-element-filtering
     cy.findAllByTestId("cell-data").last().click();
 
-    cy.on("uncaught:exception", error => {
+    cy.on("uncaught:exception", (error) => {
       expect(
         error.message.includes(
           "Error converting :aggregation reference: no aggregation at index 0",
@@ -97,7 +97,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
     const lastColumnName = "Max of Quantity";
     const columnNames = [firstColumnName, lastColumnName];
 
-    columnNames.forEach(columnName => {
+    columnNames.forEach((columnName) => {
       tableInteractive().findByText(columnName).should("be.visible");
 
       tableHeaderClick(columnName);
@@ -205,7 +205,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
       </Box>
     );
 
-    cy.get<string>("@questionId").then(questionId => {
+    cy.get<string>("@questionId").then((questionId) => {
       mountSdkContent(<TestSuiteComponent questionId={questionId} />);
     });
 
@@ -269,7 +269,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
     const onBeforeSaveSpy = cy.spy().as("onBeforeSaveSpy");
     const onSaveSpy = cy.spy().as("onSaveSpy");
 
-    cy.get("@questionId").then(questionId => {
+    cy.get("@questionId").then((questionId) => {
       mountSdkContent(
         <TestComponent
           questionId={questionId}
@@ -310,7 +310,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
     // Expect the default summarization view to be there.
     cy.findByTestId("aggregation-picker").should("be.visible");
 
-    cy.on("uncaught:exception", error => {
+    cy.on("uncaught:exception", (error) => {
       expect(error.message.includes("Stage 1 does not exist")).to.be.false;
     });
   });
@@ -344,7 +344,7 @@ describe("scenarios > embedding-sdk > interactive-question", () => {
 
     successTestCases.forEach(({ name, questionIdAlias }) => {
       it(`should load question content for ${name}`, () => {
-        cy.get(questionIdAlias).then(questionId => {
+        cy.get(questionIdAlias).then((questionId) => {
           mountInteractiveQuestion({ questionId });
         });
 
