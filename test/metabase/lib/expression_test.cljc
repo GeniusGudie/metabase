@@ -483,19 +483,18 @@
 
 (deftest ^:parallel diagnose-expression-test-2
   (testing "type errors are reported"
-    (binding [lib.schema.expression/*suppress-expression-type-check?* false]
-      (are [mode expr] (=? {:message #"Type error: .*"}
-                           (lib.expression/diagnose-expression
-                            (lib.tu/venues-query) 0 mode
-                            (lib.convert/->pMBQL expr)
-                            #?(:clj nil :cljs js/undefined)))
-        :expression  [:/ [:field 1 {:base-type :type/Address}] 100]
-             ;; To make this test case work, the aggregation schema has to be
-             ;; tighter and not allow anything. That's a bigger piece of work,
-             ;; because it makes expressions and aggregations mutually recursive
-             ;; or requires a large amount of duplication.
-        #_#_:aggregation [:sum [:is-empty [:field 1 {:base-type :type/Boolean}]]]
-        :filter      [:sum [:field 1 {:base-type :type/Integer}]]))))
+    (are [mode expr] (=? {:message #"Type error: .*"}
+                         (lib.expression/diagnose-expression
+                          (lib.tu/venues-query) 0 mode
+                          (lib.convert/->pMBQL expr)
+                          #?(:clj nil :cljs js/undefined)))
+      :expression  [:/ [:field 1 {:base-type :type/Address}] 100]
+      ;; To make this test case work, the aggregation schema has to be
+      ;; tighter and not allow anything. That's a bigger piece of work,
+      ;; because it makes expressions and aggregations mutually recursive
+      ;; or requires a large amount of duplication.
+      #_#_:aggregation [:sum [:is-empty [:field 1 {:base-type :type/Boolean}]]]
+      :filter      [:sum [:field 1 {:base-type :type/Integer}]])))
 
 (deftest ^:parallel diagnose-expression-test-3
   (testing "correct expression are accepted silently"
@@ -556,30 +555,29 @@
           restricted-metadata-graph (update metadata-graph :features disj :expression-literals)
           restricted-provider (meta.graph-provider/->SimpleGraphMetadataProvider restricted-metadata-graph)
           query (lib/query restricted-provider (meta/table-metadata :orders))
-          expr  [:value {:lib/uuid (str (random-uuid)) :effective-type :type/Integer} 1]]
+          expr  (lib.expression/value true)]
       (doseq [mode [:expression :filter]]
         (is (=? {:message  "Standalone constants are not supported."
                  :friendly true}
                 (lib.expression/diagnose-expression query 0 mode expr nil)))))))
 
 (deftest ^:parallel diagnose-expression-literal-values-test
-  (binding [lib.schema.expression/*suppress-expression-type-check?* false]
-    (let [query     (lib/query meta/metadata-provider (meta/table-metadata :orders))
-          int-expr  [:value 1 nil]
-          str-expr  [:value "foo" nil]
-          bool-expr [:value true nil]
-          diagnose-expr (fn [mode expr]
-                          (lib.expression/diagnose-expression query 0 mode (lib.convert/->pMBQL expr) nil))]
-      (testing "valid literal expressions are accepted"
-        (are [mode expr] (nil? (diagnose-expr mode expr))
-          :expression  int-expr
-          :expression  str-expr
-          :expression  bool-expr
-          :filter      bool-expr))
-      (testing "invalid literal expressions are rejected when not suppressing type checks"
-        (are [mode expr] (=? {:message #"Type error: .*"} (diagnose-expr mode expr))
-          :filter str-expr
-          :filter int-expr)))))
+  (let [query     (lib/query meta/metadata-provider (meta/table-metadata :orders))
+        int-expr  [:value 1 nil]
+        str-expr  [:value "foo" nil]
+        bool-expr [:value true nil]
+        diagnose-expr (fn [mode expr]
+                        (lib.expression/diagnose-expression query 0 mode (lib.convert/->pMBQL expr) nil))]
+    (testing "valid literal expressions are accepted"
+      (are [mode expr] (nil? (diagnose-expr mode expr))
+        :expression  int-expr
+        :expression  str-expr
+        :expression  bool-expr
+        :filter      bool-expr))
+    (testing "invalid literal expressions are rejected when not suppressing type checks"
+      (are [mode expr] (=? {:message #"Type error: .*"} (diagnose-expr mode expr))
+        :filter str-expr
+        :filter int-expr))))
 
 (deftest ^:parallel date-and-time-string-literals-test-1-dates
   (are [types input] (= types (lib.schema.expression/type-of input))
