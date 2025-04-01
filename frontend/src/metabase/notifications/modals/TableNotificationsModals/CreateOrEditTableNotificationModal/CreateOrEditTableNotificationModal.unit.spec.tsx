@@ -56,7 +56,7 @@ describe("CreateOrEditTableNotificationModal", () => {
 
   it.each([{ isAdmin: true }, { isAdmin: false, userCanAccessSettings: true }])(
     "should display first available channel by default - Slack %p",
-    async setupConfig => {
+    async (setupConfig) => {
       setup({
         isEmailSetup: false,
         isSlackSetup: true,
@@ -76,7 +76,7 @@ describe("CreateOrEditTableNotificationModal", () => {
 
   it.each([{ isAdmin: true }, { isAdmin: false, userCanAccessSettings: true }])(
     "should display first available channel by default - Webhook %p",
-    async setupConfig => {
+    async (setupConfig) => {
       const mockWebhook = createMockChannel();
       setup({
         isEmailSetup: false,
@@ -280,7 +280,7 @@ describe("CreateOrEditTableNotificationModal", () => {
       const requestBody = await calls[0][1]?.body;
       const parsedBody = JSON.parse(requestBody as string);
       return parsedBody; // Return the parsed body for later assertions
-    }).then(parsedBody => {
+    }).then((parsedBody) => {
       // Verify the event has been changed to 'row deleted'
       expect(parsedBody.subscriptions[0].event_name).toBe(
         "event/data-editing-row-delete",
@@ -337,7 +337,7 @@ describe("CreateOrEditTableNotificationModal", () => {
       const requestBody = await calls[0][1]?.body;
       const parsedBody = JSON.parse(requestBody as string);
       return parsedBody; // Return the parsed body for later assertions
-    }).then(parsedBody => {
+    }).then((parsedBody) => {
       // Verify the event has been changed to 'row updated'
       expect(parsedBody.subscriptions[0].event_name).toBe(
         "event/data-editing-row-update",
